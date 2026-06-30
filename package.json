@@ -1,0 +1,18 @@
+{
+  "name": "hotel-employee-management-system",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run dev:backend & npm run dev:frontend",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "start:backend": "npm --prefix backend run start",
+    "start:frontend": "npm --prefix frontend run dev",
+    "seed": "npm --prefix backend run seed"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}
