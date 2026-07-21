@@ -24,16 +24,59 @@ const buildCustomerHistory = async (customerId) => {
 
 export const searchCustomers = asyncHandler(async (req, res) => {
   const { q } = req.query;
-  const normalizedQuery = normalizePhone(q || "");
+  const rawQuery = String(q || "").trim();
+  const normalizedQuery = normalizePhone(rawQuery);
 
-  const customers = await Customer.find({
+  // Direct matches: customer's own name or phone
+  const directMatches = await Customer.find({
     $or: [
-      { fullName: { $regex: q || "", $options: "i" } },
+      { fullName: { $regex: rawQuery, $options: "i" } },
       { phoneNumber: { $regex: normalizedQuery || "", $options: "i" } },
     ],
   })
     .sort({ updatedAt: -1 })
     .limit(20);
+
+  // Also search additional guests embedded on stays (guestList snapshots)
+  // and the linked additionalGuests Customer records, so someone who
+  // stayed as a "plus one" is still findable by name.
+  let guestMatches = [];
+  if (rawQuery) {
+    const staysWithMatchingGuest = await Stay.find({
+      "guestList.fullName": { $regex: rawQuery, $options: "i" },
+    })
+      .populate("customer additionalGuests")
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    const guestCustomerIds = new Set();
+    staysWithMatchingGuest.forEach((stay) => {
+      (stay.additionalGuests || []).forEach((guest) => {
+        if (guest?.fullName && new RegExp(rawQuery, "i").test(guest.fullName)) {
+          guestCustomerIds.add(String(guest._id));
+        }
+      });
+    });
+
+    if (guestCustomerIds.size) {
+      guestMatches = await Customer.find({
+        _id: { $in: Array.from(guestCustomerIds) },
+      });
+    }
+  }
+
+  // Merge, de-duplicate by _id, direct matches first
+  const seen = new Set(directMatches.map((c) => String(c._id)));
+  const merged = [...directMatches];
+  guestMatches.forEach((customer) => {
+    const id = String(customer._id);
+    if (!seen.has(id)) {
+      seen.add(id);
+      merged.push(customer);
+    }
+  });
+
+  const customers = merged.slice(0, 20);
 
   const activeStays = customers.length
     ? await Stay.find({
@@ -91,12 +134,42 @@ export const getCustomerById = asyncHandler(async (req, res, next) => {
   res.json({ customer, history });
 });
 
-export const createOrUpdateCustomer = asyncHandler(async (req, res) => {
+const checkCitizenshipConflict = async (
+  citizenshipIdNumber,
+  excludeCustomerId,
+) => {
+  const trimmed = String(citizenshipIdNumber || "").trim();
+  if (!trimmed) return null;
+
+  const query = { citizenshipIdNumber: trimmed };
+  if (excludeCustomerId) {
+    query._id = { $ne: excludeCustomerId };
+  }
+
+  return Customer.findOne(query);
+};
+
+export const createOrUpdateCustomer = asyncHandler(async (req, res, next) => {
   const payload = req.body;
   const phoneNumber = normalizePhone(payload.phoneNumber);
   const existing = await Customer.findOne({ phoneNumber });
 
   if (existing) {
+    if (payload.citizenshipIdNumber) {
+      const conflict = await checkCitizenshipConflict(
+        payload.citizenshipIdNumber,
+        existing._id,
+      );
+      if (conflict) {
+        return next(
+          new ApiError(
+            409,
+            "This citizenship number is already registered to another customer.",
+          ),
+        );
+      }
+    }
+
     existing.fullName = payload.fullName || existing.fullName;
     existing.address = payload.address ?? existing.address;
     existing.citizenshipIdNumber =
@@ -111,6 +184,21 @@ export const createOrUpdateCustomer = asyncHandler(async (req, res) => {
     return res.json({ customer: existing, repeatCustomer: true, history });
   }
 
+  if (payload.citizenshipIdNumber) {
+    const conflict = await checkCitizenshipConflict(
+      payload.citizenshipIdNumber,
+      null,
+    );
+    if (conflict) {
+      return next(
+        new ApiError(
+          409,
+          "This citizenship number is already registered to another customer.",
+        ),
+      );
+    }
+  }
+
   const customer = await Customer.create({
     ...payload,
     phoneNumber,
@@ -121,6 +209,21 @@ export const createOrUpdateCustomer = asyncHandler(async (req, res) => {
 });
 
 export const updateCustomer = asyncHandler(async (req, res, next) => {
+  if (req.body.citizenshipIdNumber) {
+    const conflict = await checkCitizenshipConflict(
+      req.body.citizenshipIdNumber,
+      req.params.id,
+    );
+    if (conflict) {
+      return next(
+        new ApiError(
+          409,
+          "This citizenship number is already registered to another customer.",
+        ),
+      );
+    }
+  }
+
   const customer = await Customer.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
   });

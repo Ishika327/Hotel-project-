@@ -5,7 +5,6 @@
         <p class="eyebrow">Operations Snapshot</p>
         <h2>Dashboard</h2>
       </div>
-      <button class="pill-btn" @click="loadData">Refresh</button>
     </div>
 
     <div class="stat-grid">

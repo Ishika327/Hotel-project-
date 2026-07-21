@@ -12,7 +12,7 @@
         </div>
 
         <form class="form-grid" @submit.prevent="submitForm">
-          <label>
+          <label class="field-row">
             <span>Full Name</span>
             <input
               v-model="form.fullName"
@@ -25,7 +25,7 @@
             }}</small>
           </label>
 
-          <label>
+          <label class="field-row">
             <span>Phone Number</span>
             <input
               v-model="form.phoneNumber"
@@ -58,7 +58,7 @@
             </button>
           </div>
 
-          <label>
+          <label class="field-row">
             <span>Location</span>
             <input
               v-model="form.location"
@@ -71,9 +71,22 @@
             }}</small>
           </label>
 
-          <label>
+          <label class="field-row">
             <span>Nationality</span>
             <input v-model="form.nationality" type="text" />
+          </label>
+
+          <label class="field-row">
+            <span>Citizenship No.</span>
+            <input
+              v-model="form.citizenshipIdNumber"
+              :class="{ 'input-error': errors.citizenshipIdNumber }"
+              type="text"
+              placeholder="XX-XX-XX-XXXXX"
+            />
+            <small v-if="errors.citizenshipIdNumber" class="error-text">{{
+              errors.citizenshipIdNumber
+            }}</small>
           </label>
 
           <label class="full-width">
@@ -156,6 +169,67 @@
                     placeholder="extra pillows, non-smoking, high floor"
                   />
                 </label>
+
+                <div class="full-width guest-list-block">
+                  <div class="guest-list-head">
+                    <span>Additional Guests</span>
+                    <button
+                      class="btn btn-outline"
+                      type="button"
+                      @click="addRegistrationGuest"
+                    >
+                      + Add Guest
+                    </button>
+                  </div>
+                  <div
+                    v-for="(guest, index) in registrationAssignment.guestList"
+                    :key="index"
+                    class="guest-detail-card"
+                  >
+                    <div class="guest-detail-head">
+                      <strong>Guest {{ index + 2 }}</strong>
+                      <button
+                        class="btn btn-outline"
+                        type="button"
+                        @click="
+                          registrationAssignment.guestList.splice(index, 1)
+                        "
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div class="guest-detail-grid">
+                      <label>
+                        <span>Full Name</span>
+                        <input v-model="guest.fullName" type="text" required />
+                      </label>
+                      <label>
+                        <span>Phone Number</span>
+                        <input v-model="guest.phoneNumber" type="text" />
+                      </label>
+                      <label>
+                        <span>Citizenship No.</span>
+                        <input
+                          v-model="guest.citizenshipIdNumber"
+                          type="text"
+                          placeholder="XX-XX-XX-XXXXX"
+                        />
+                      </label>
+                      <label>
+                        <span>Relation</span>
+                        <input
+                          v-model="guest.relation"
+                          type="text"
+                          placeholder="Friend / Wife / Son"
+                        />
+                      </label>
+                      <label class="full-width">
+                        <span>Address</span>
+                        <input v-model="guest.address" type="text" />
+                      </label>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -487,6 +561,69 @@
                     />
                   </label>
 
+                  <div class="full-width guest-list-block">
+                    <div class="guest-list-head">
+                      <span>Additional Guests</span>
+                      <button
+                        class="btn btn-outline"
+                        type="button"
+                        @click="addProfileGuest"
+                      >
+                        + Add Guest
+                      </button>
+                    </div>
+                    <div
+                      v-for="(guest, index) in profileAssignment.guestList"
+                      :key="index"
+                      class="guest-detail-card"
+                    >
+                      <div class="guest-detail-head">
+                        <strong>Guest {{ index + 2 }}</strong>
+                        <button
+                          class="btn btn-outline"
+                          type="button"
+                          @click="profileAssignment.guestList.splice(index, 1)"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <div class="guest-detail-grid">
+                        <label>
+                          <span>Full Name</span>
+                          <input
+                            v-model="guest.fullName"
+                            type="text"
+                            required
+                          />
+                        </label>
+                        <label>
+                          <span>Phone Number</span>
+                          <input v-model="guest.phoneNumber" type="text" />
+                        </label>
+                        <label>
+                          <span>Citizenship No.</span>
+                          <input
+                            v-model="guest.citizenshipIdNumber"
+                            type="text"
+                            placeholder="XX-XX-XX-XXXXX"
+                          />
+                        </label>
+                        <label>
+                          <span>Relation</span>
+                          <input
+                            v-model="guest.relation"
+                            type="text"
+                            placeholder="Friend / Wife / Son"
+                          />
+                        </label>
+                        <label class="full-width">
+                          <span>Address</span>
+                          <input v-model="guest.address" type="text" />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="inline-assign-actions full-width">
                     <button
                       class="btn btn-gold"
@@ -651,12 +788,14 @@ const form = reactive({
   location: "",
   nationality: "Nepali",
   notes: "",
+  citizenshipIdNumber: "",
 });
 
 const errors = reactive({
   fullName: "",
   phoneNumber: "",
   location: "",
+  citizenshipIdNumber: "",
 });
 
 const registrationAssignment = reactive({
@@ -664,6 +803,7 @@ const registrationAssignment = reactive({
   checkInDate: "",
   checkOutDate: "",
   specialRequests: "",
+  guestList: [],
 });
 
 const profileAssignment = reactive({
@@ -671,6 +811,7 @@ const profileAssignment = reactive({
   checkInDate: "",
   checkOutDate: "",
   specialRequests: "",
+  guestList: [],
 });
 
 const stayForm = reactive({
@@ -862,12 +1003,42 @@ const resetStayAssignments = () => {
     checkInDate: start,
     checkOutDate: end,
     specialRequests: "",
+    guestList: [],
   });
   Object.assign(profileAssignment, {
     roomNumber: "",
     checkInDate: start,
     checkOutDate: end,
     specialRequests: "",
+    guestList: [],
+  });
+};
+
+const addRegistrationGuest = () => {
+  if (registrationAssignment.guestList.length >= 4) {
+    showToast("Maximum 5 guests per room (1 primary + 4 additional).", "error");
+    return;
+  }
+  registrationAssignment.guestList.push({
+    fullName: "",
+    phoneNumber: "",
+    citizenshipIdNumber: "",
+    address: "",
+    relation: "",
+  });
+};
+
+const addProfileGuest = () => {
+  if (profileAssignment.guestList.length >= 4) {
+    showToast("Maximum 5 guests per room (1 primary + 4 additional).", "error");
+    return;
+  }
+  profileAssignment.guestList.push({
+    fullName: "",
+    phoneNumber: "",
+    citizenshipIdNumber: "",
+    address: "",
+    relation: "",
   });
 };
 
@@ -950,6 +1121,7 @@ const validateForm = () => {
   errors.fullName = "";
   errors.phoneNumber = "";
   errors.location = "";
+  errors.citizenshipIdNumber = "";
 
   const normalized = customerStore.normalizePhone(form.phoneNumber);
   const digits = normalized.replace(/^\+977/, "");
@@ -962,7 +1134,12 @@ const validateForm = () => {
     errors.phoneNumber = "Enter a valid Nepali phone number.";
   }
 
-  return !errors.fullName && !errors.phoneNumber && !errors.location;
+  return (
+    !errors.fullName &&
+    !errors.phoneNumber &&
+    !errors.location &&
+    !errors.citizenshipIdNumber
+  );
 };
 
 const clearForm = () => {
@@ -972,6 +1149,7 @@ const clearForm = () => {
     location: "",
     nationality: "Nepali",
     notes: "",
+    citizenshipIdNumber: "",
   });
   registrationRoomAssignmentEnabled.value = false;
   resetStayAssignments();
@@ -992,6 +1170,7 @@ const buildPayload = () => {
     address: form.location.trim() || undefined,
     notes: form.notes.trim() || undefined,
     nationality: form.nationality.trim() || "Nepali",
+    citizenshipIdNumber: form.citizenshipIdNumber.trim() || undefined,
   };
 };
 
@@ -1042,6 +1221,9 @@ const submitForm = async () => {
         checkIn: registrationAssignment.checkInDate,
         checkOut: registrationAssignment.checkOutDate,
         specialRequests: registrationAssignment.specialRequests,
+        guestList: registrationAssignment.guestList.filter((g) =>
+          g.fullName?.trim(),
+        ),
       });
       showToast(
         `Customer registered and checked into Room ${room?.roomNumber || registrationAssignment.roomNumber}`,
@@ -1106,6 +1288,7 @@ const submitProfileAssignment = async () => {
       checkIn: profileAssignment.checkInDate,
       checkOut: profileAssignment.checkOutDate,
       specialRequests: profileAssignment.specialRequests,
+      guestList: profileAssignment.guestList.filter((g) => g.fullName?.trim()),
     });
     profileRoomAssignmentExpanded.value = false;
     showToast(
@@ -1194,6 +1377,7 @@ const editSelected = () => {
     location: selectedCustomer.value.address || "",
     nationality: selectedCustomer.value.nationality || "Nepali",
     notes: selectedCustomer.value.notes || "",
+    citizenshipIdNumber: selectedCustomer.value.citizenshipIdNumber || "",
   });
 };
 
@@ -1391,6 +1575,11 @@ h4 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  align-items: start;
+}
+
+.field-row {
+  align-self: start;
 }
 
 .full-width {
@@ -1473,17 +1662,16 @@ textarea:focus {
   overflow: hidden;
   opacity: 0;
   transition:
-    max-height 0.35s ease,
     opacity 0.25s ease,
     margin-top 0.25s ease;
 }
 
 .room-assignment-panel--open {
-  max-height: 560px;
+  max-height: none;
+  overflow: visible;
   opacity: 1;
   margin-top: 12px;
 }
-
 .room-assignment-panel--inline {
   margin-top: 0;
 }
@@ -1506,6 +1694,41 @@ textarea:focus {
   color: #8b6914;
   font-family: "DM Serif Display", Georgia, serif;
   font-size: 1.1rem;
+}
+
+.guest-list-block {
+  border-top: 1px solid #ede8da;
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+.guest-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.guest-detail-card {
+  border: 1px solid #e8e6e0;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #fff;
+}
+
+.guest-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.guest-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .current-stay-block {
@@ -2073,7 +2296,8 @@ th {
 
   .form-grid,
   .stay-form,
-  .stats-row {
+  .stats-row,
+  .guest-detail-grid {
     grid-template-columns: 1fr;
   }
 

@@ -9,7 +9,6 @@ import InvoiceView from "../views/InvoiceView.vue";
 import StaysView from "../views/StaysView.vue";
 import ReportsView from "../views/ReportsView.vue";
 import ProfileSettings from "../views/ProfileSettings.vue";
-import AccountSettings from "../views/AccountSettings.vue";
 import FoodBillingDashboard from "../views/FoodBillingDashboard.vue";
 
 const routes = [
@@ -37,11 +36,6 @@ const routes = [
       { path: "food-billing-dashboard", redirect: { name: "food-billing" } },
       { path: "billing", redirect: { name: "invoices" } },
       { path: "reports", name: "reports", component: ReportsView },
-      {
-        path: "account-settings",
-        name: "AccountSettings",
-        component: AccountSettings,
-      },
       {
         path: "profile-settings",
         name: "ProfileSettings",

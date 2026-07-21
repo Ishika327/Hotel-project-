@@ -32,12 +32,6 @@
           <p class="subtle">{{ userRole }}</p>
           <RouterLink
             class="pill-btn pill-btn--ghost user-menu__link"
-            to="/account-settings"
-          >
-            Account Settings
-          </RouterLink>
-          <RouterLink
-            class="pill-btn pill-btn--ghost user-menu__link"
             to="/profile-settings"
           >
             My Account
@@ -70,7 +64,6 @@ const titles = {
   stays: "Stays",
   invoices: "Invoices",
   reports: "Reports",
-  AccountSettings: "Account Settings",
   ProfileSettings: "Profile Settings",
   "food-billing": "Food Billing",
 };

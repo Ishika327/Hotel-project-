@@ -5,8 +5,8 @@
         <p class="eyebrow">Front Desk Flow</p>
         <h2>Stays</h2>
       </div>
-      <button class="pill-btn" type="button" @click="openNewStayModal">
-        New Check-In
+      <button class="primary-btn" @click="openNewStayModal">
+        + New Check-In
       </button>
     </div>
 
@@ -134,6 +134,7 @@
                   required
                 />
               </label>
+
               <label>
                 Check-out
                 <input
@@ -142,35 +143,143 @@
                   required
                 />
               </label>
-              <label>
-                Guests
-                <input
-                  v-model.number="stayForm.guests"
-                  type="number"
-                  min="1"
-                  required
-                />
-              </label>
-              <label>
-                Notes
+
+              <label class="full">
+                Stay Notes
                 <input
                   v-model="stayForm.stayNotes"
                   type="text"
                   placeholder="Special requests"
                 />
               </label>
-            </div>
 
+              <div class="full">
+                <hr />
+
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin: 15px 0;
+                  "
+                >
+                  <h3>Additional Guests</h3>
+
+                  <button type="button" class="primary-btn" @click="addGuest">
+                    + Add Guest
+                  </button>
+                </div>
+
+                <div v-if="stayForm.guestList.length === 0" class="empty-state">
+                  No additional guests.
+                </div>
+
+                <div
+                  v-for="(guest, index) in stayForm.guestList"
+                  :key="index"
+                  class="panel"
+                  style="margin-bottom: 20px"
+                >
+                  <div
+                    style="
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                      margin-bottom: 15px;
+                    "
+                  >
+                    <strong> Guest {{ index + 2 }} </strong>
+
+                    <button
+                      type="button"
+                      class="pill-btn status-danger"
+                      @click="removeGuest(index)"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div class="form-grid">
+                    <label>
+                      Full Name
+                      <input v-model="guest.fullName" type="text" required />
+                    </label>
+
+                    <label>
+                      Gender
+                      <select v-model="guest.gender">
+                        <option>Male</option>
+
+                        <option>Female</option>
+
+                        <option>Other</option>
+                      </select>
+                    </label>
+
+                    <label>
+                      Age
+                      <input v-model.number="guest.age" type="number" />
+                    </label>
+
+                    <label>
+                      Phone Number
+                      <input v-model="guest.phoneNumber" type="text" />
+                    </label>
+
+                    <label>
+                      Citizenship No.
+                      <input v-model="guest.citizenshipIdNumber" type="text" />
+                    </label>
+
+                    <label>
+                      Relation
+                      <input
+                        v-model="guest.relation"
+                        type="text"
+                        placeholder="Friend / Wife / Son"
+                      />
+                    </label>
+
+                    <label class="full">
+                      Address
+                      <input v-model="guest.address" type="text" />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div v-else class="stack">
               <p class="subtle">
                 Confirm the stay details before creating the check-in.
               </p>
               <div class="list-card">
-                <p><strong>Customer</strong> {{ selectedCustomerName }}</p>
-                <p><strong>Room</strong> {{ selectedRoomLabel }}</p>
                 <p>
-                  <strong>Dates</strong>
-                  {{ formatDate(stayForm.checkInDate) }} -
+                  <strong>Primary Guest:</strong> {{ selectedCustomerName }}
+                </p>
+
+                <p>
+                  <strong>Additional Guests:</strong>
+                  {{ stayForm.guestList.length }}
+                </p>
+
+                <p>
+                  <strong>Total Guests:</strong>
+                  {{ stayForm.guestList.length + 1 }}
+                </p>
+
+                <p>
+                  <strong>Room:</strong>
+                  {{ selectedRoomLabel }}
+                </p>
+
+                <p>
+                  <strong>Check In:</strong>
+                  {{ formatDate(stayForm.checkInDate) }}
+                </p>
+
+                <p>
+                  <strong>Check Out:</strong>
                   {{ formatDate(stayForm.checkOutDate) }}
                 </p>
               </div>
@@ -237,8 +346,14 @@ const stayForm = reactive({
   roomId: "",
   checkInDate: "",
   checkOutDate: "",
+
+  // Total people in room
   guests: 1,
+
   stayNotes: "",
+
+  // Additional Guests
+  guestList: [],
 });
 
 const availableRooms = computed(() =>
@@ -275,10 +390,16 @@ const statusTone = (status) => {
 
 const countdownLabel = (value) => {
   const target = new Date(value);
+
   if (Number.isNaN(target.getTime())) return "-";
+
   const diff = target.getTime() - Date.now();
-  const hours = Math.max(0, Math.ceil(diff / (1000 * 60 * 60)));
-  return hours > 0 ? `${hours}h left` : "Due now";
+
+  if (diff <= 0) return "Expired";
+
+  const hours = Math.ceil(diff / (1000 * 60 * 60));
+
+  return `${hours} hrs left`;
 };
 
 const canCheckoutStay = (stay) => {
@@ -302,6 +423,7 @@ const resetForm = () => {
   stayForm.checkOutDate = toLocalDateTimeInput(tomorrow);
   stayForm.guests = 1;
   stayForm.stayNotes = "";
+  stayForm.guestList = [];
 };
 
 const loadData = async () => {
@@ -331,12 +453,19 @@ const createStay = async () => {
   }
 
   try {
-    await api.post("/stays", {
+    const payload = {
       ...stayForm,
       employeeId,
-    });
-    ui.pushToast("Stay created");
+      guests: stayForm.guestList.length + 1,
+    };
+    await api.post("/stays", payload);
+
+    resetForm();
+    stayStep.value = 0;
     showModal.value = false;
+
+    ui.pushToast("Stay created successfully");
+
     await loadData();
   } catch (error) {
     ui.pushToast(
@@ -377,12 +506,31 @@ const checkout = async (stayId) => {
   }
 };
 
+const addGuest = () => {
+  stayForm.guestList.push({
+    fullName: "",
+    gender: "Male",
+    age: "",
+    phoneNumber: "",
+    email: "",
+    citizenshipIdNumber: "",
+    address: "",
+    relation: "",
+  });
+
+  stayForm.guests = stayForm.guestList.length + 1;
+};
+
+const removeGuest = (index) => {
+  stayForm.guestList.splice(index, 1);
+  stayForm.guests = stayForm.guestList.length + 1;
+};
+
 const openNewStayModal = () => {
   resetForm();
   stayStep.value = 0;
   showModal.value = true;
 };
-
 const selectedCustomerName = computed(
   () =>
     customers.value.find((customer) => customer._id === stayForm.customerId)

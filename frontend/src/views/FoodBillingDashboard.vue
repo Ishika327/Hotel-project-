@@ -5,15 +5,7 @@
         <p class="eyebrow">Hotel F&B Desk</p>
         <h2>Food Billing Dashboard</h2>
       </div>
-      <div class="head-actions">
-        <button
-          class="pill-btn"
-          @click="fetchActiveGuests"
-          :disabled="loadingGuests"
-        >
-          {{ loadingGuests ? "Refreshing..." : "Refresh Guests" }}
-        </button>
-      </div>
+      <div class="head-actions"></div>
     </header>
 
     <div class="dashboard-layout">
@@ -898,13 +890,13 @@ const grandTotal = computed(() => subtotal.value);
 
 const paymentOptions = [
   { label: "Unpaid", value: "unpaid" },
-  { label: "Partial Payment", value: "partial" },
+  { label: "Amount Paid", value: "partial" },
   { label: "Paid in Full", value: "paid" },
 ];
 
 const paymentStatusLabel = computed(() => {
   if (paymentStatus.value === "paid") return "Paid in Full";
-  if (paymentStatus.value === "partial") return "Partial Payment";
+  if (paymentStatus.value === "partial") return "Amount Paid";
   return "Unpaid";
 });
 
@@ -1147,7 +1139,7 @@ const buildBillPrintHTML = () => {
         paymentStatus.value === "paid"
           ? `Payment complete — NPR ${paid.toLocaleString()} received.${returnAmt > 0 ? ` NPR ${returnAmt.toLocaleString()} to be returned to guest.` : ""}`
           : paymentStatus.value === "partial"
-            ? `Partial payment — NPR ${remaining.toLocaleString()} still outstanding.`
+            ? `Amount Paid — NPR ${remaining.toLocaleString()} still outstanding.`
             : `Payment pending — NPR ${grandTotal.toLocaleString()} outstanding.`
       }
     </div>
@@ -1889,4 +1881,185 @@ select {
     grid-template-columns: 1fr;
   }
 }
+/* --- Retheme to red/blue signage palette --- */
+/* ===== CLEAN BLUE & WHITE THEME ===== */
+
+.food-billing-page {
+  background: #f5f9ff;
+  border-color: #d6e4ff;
+}
+
+.left-panel,
+.right-panel,
+.guest-card,
+.bill-items,
+.totals-card {
+  background: #ffffff;
+  border-color: #d6e4ff;
+}
+
+.left-panel {
+  background:
+    linear-gradient(180deg, rgba(37, 99, 235, 0.05), transparent 35%), #ffffff;
+}
+
+.menu-manager,
+.payment-panel {
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.06), #ffffff);
+  border-color: #bfdbfe;
+}
+
+.eyebrow {
+  color: #2563eb;
+}
+
+.field span,
+.menu-manager__form label span,
+.menu-card__edit label span,
+.partial-payment-row span {
+  color: #334155;
+}
+
+select,
+.menu-manager__form input,
+.menu-card__edit input,
+.partial-payment-row input[type="number"] {
+  border-color: #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+select:focus,
+.menu-manager__form input:focus,
+.menu-card__edit input:focus,
+.partial-payment-row input[type="number"]:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.tab-btn {
+  background: #eff6ff;
+  border-color: #dbeafe;
+  color: #1e3a8a;
+}
+
+.tab-btn--active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.btn-add {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.btn-add:hover {
+  background: #1d4ed8;
+}
+
+.pill-btn {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.pill-btn:hover {
+  background: #1d4ed8;
+}
+
+.pill-btn--ghost {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #1e3a8a;
+}
+
+.primary-btn {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.primary-btn:hover {
+  background: #1d4ed8;
+}
+
+.payment-pill {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #1e3a8a;
+}
+
+.payment-pill--active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.menu-card {
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+  border-color: #dbeafe;
+}
+
+.menu-card:hover {
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12);
+}
+
+.qty-row {
+  background: #eff6ff;
+}
+
+.qty-btn:hover {
+  background: #dbeafe;
+}
+
+.btn-icon:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #2563eb;
+}
+
+.guest-name {
+  color: #0f172a;
+}
+
+.empty-note,
+.bill-line p,
+.payment-helper {
+  color: #64748b;
+}
+
+.invoice-result-card {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1e3a8a;
+}
+
+.status-badge--blue {
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+  border-color: rgba(37, 99, 235, 0.28);
+}
+
+.status-badge--green {
+  background: rgba(22, 163, 74, 0.12);
+  color: #15803d;
+  border-color: rgba(22, 163, 74, 0.25);
+}
+
+.status-badge--amber {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.status-badge--red {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+/* ======================================= */
 </style>

@@ -60,6 +60,90 @@ const resolveRoom = async (roomId, roomNumber, session) => {
   return null;
 };
 
+// Cleans the raw guestList payload from the frontend into a
+// consistent shape matching the Stay schema's embedded guestList.
+const cleanGuestList = (guestList) =>
+  (Array.isArray(guestList) ? guestList : [])
+    .map((guest) => ({
+      fullName: String(guest?.fullName || "").trim(),
+      gender: ["Male", "Female", "Other"].includes(guest?.gender)
+        ? guest.gender
+        : "Male",
+      age: guest?.age ? Number(guest.age) : undefined,
+      phoneNumber: String(guest?.phoneNumber || "").trim(),
+      citizenshipIdNumber: String(guest?.citizenshipIdNumber || "").trim(),
+      address: String(guest?.address || "").trim(),
+      relation: String(guest?.relation || "").trim(),
+    }))
+    .filter((guest) => guest.fullName);
+
+// Turns the cleaned guestList into real, searchable Customer records.
+// Reuses an existing customer by phone number if there's a match;
+// falls back to name matching for guests without a phone number.
+const resolveAdditionalGuests = async (cleanedGuests, session) => {
+  if (!cleanedGuests.length) return [];
+
+  const guestIds = [];
+
+  for (const guest of cleanedGuests) {
+    let existing = null;
+
+    if (guest.phoneNumber) {
+      existing = await Customer.findOne({
+        phoneNumber: guest.phoneNumber,
+      }).session(session);
+    }
+
+    if (!existing) {
+      existing = await Customer.findOne({
+        fullName: { $regex: `^${guest.fullName}$`, $options: "i" },
+        phoneNumber: { $in: [null, ""] },
+      }).session(session);
+    }
+
+    if (existing) {
+      existing.lastVisitAt = new Date();
+      if (!existing.phoneNumber && guest.phoneNumber) {
+        existing.phoneNumber = guest.phoneNumber;
+      }
+      if (!existing.address && guest.address) {
+        existing.address = guest.address;
+      }
+      if (!existing.citizenshipIdNumber && guest.citizenshipIdNumber) {
+        existing.citizenshipIdNumber = guest.citizenshipIdNumber;
+      }
+      await existing.save({ session });
+      guestIds.push(existing._id);
+      continue;
+    }
+
+    const notes = [
+      guest.relation ? `Relation: ${guest.relation}` : "",
+      guest.gender ? `Gender: ${guest.gender}` : "",
+      guest.age ? `Age: ${guest.age}` : "",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
+    const created = await Customer.create(
+      [
+        {
+          fullName: guest.fullName,
+          phoneNumber: guest.phoneNumber || undefined,
+          address: guest.address || undefined,
+          citizenshipIdNumber: guest.citizenshipIdNumber || undefined,
+          notes: notes || undefined,
+          lastVisitAt: new Date(),
+        },
+      ],
+      { session },
+    );
+    guestIds.push(created[0]._id);
+  }
+
+  return guestIds;
+};
+
 export const createStay = asyncHandler(async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -77,6 +161,7 @@ export const createStay = asyncHandler(async (req, res, next) => {
       guests,
       stayNotes,
       specialRequests,
+      guestList,
     } = req.body;
     const customer = await Customer.findById(customerId).session(session);
     const room = await resolveRoom(roomId, roomNumber, session);
@@ -84,7 +169,6 @@ export const createStay = asyncHandler(async (req, res, next) => {
     const effectiveCheckOut = checkOutDate || checkOut;
     const effectiveEmployeeId = employeeId || req.user?._id;
     const effectiveNotes = stayNotes || specialRequests;
-    const effectiveGuests = Number(guests || 1);
 
     if (!customer) {
       throw new ApiError(404, "Customer not found");
@@ -97,6 +181,16 @@ export const createStay = asyncHandler(async (req, res, next) => {
     if (room.status === "Occupied") {
       throw new ApiError(400, "Room is already occupied");
     }
+
+    const cleanedGuests = cleanGuestList(guestList);
+    const additionalGuestIds = await resolveAdditionalGuests(
+      cleanedGuests,
+      session,
+    );
+
+    const effectiveGuests = Number(
+      guests || additionalGuestIds.length + 1 || 1,
+    );
 
     const roomCharges = calculateRoomCharge(
       room.pricePerNight,
@@ -112,6 +206,8 @@ export const createStay = asyncHandler(async (req, res, next) => {
       [
         {
           customer: customer._id,
+          additionalGuests: additionalGuestIds,
+          guestList: cleanedGuests,
           room: room._id,
           employee: effectiveEmployeeId,
           checkInDate: effectiveCheckIn,
@@ -137,7 +233,7 @@ export const createStay = asyncHandler(async (req, res, next) => {
 
     await session.commitTransaction();
     const populatedStay = await Stay.findById(stay[0]._id).populate(
-      "customer room employee",
+      "customer room employee additionalGuests",
     );
     res.status(201).json({ stay: populatedStay });
   } catch (error) {
@@ -152,7 +248,7 @@ export const getActiveStayForCustomer = asyncHandler(async (req, res) => {
   const { customerId } = req.query;
   if (!customerId) {
     const activeStays = await Stay.find({ stayStatus: { $ne: "CheckedOut" } })
-      .populate("customer room employee")
+      .populate("customer room employee additionalGuests")
       .sort({ createdAt: -1 });
 
     return res.json({
@@ -160,6 +256,9 @@ export const getActiveStayForCustomer = asyncHandler(async (req, res) => {
         stayId: stay._id,
         customerId: stay.customer?._id || null,
         guestName: stay.customer?.fullName || "Guest",
+        additionalGuestNames: (stay.additionalGuests || []).map(
+          (guest) => guest.fullName,
+        ),
         roomId: stay.room?._id || null,
         roomNumber: stay.room?.roomNumber || null,
         roomType: stay.room?.roomType || null,
@@ -187,7 +286,7 @@ export const getActiveStayForCustomer = asyncHandler(async (req, res) => {
     customer: customerId,
     stayStatus: "CheckedIn",
   })
-    .populate("room employee")
+    .populate("room employee additionalGuests")
     .sort({ createdAt: -1 });
 
   res.json({
@@ -297,7 +396,7 @@ export const checkoutStay = asyncHandler(async (req, res, next) => {
 
 export const getStays = asyncHandler(async (_req, res) => {
   const stays = await Stay.find()
-    .populate("customer room employee")
+    .populate("customer room employee additionalGuests")
     .sort({ createdAt: -1 })
     .limit(200);
   res.json({ stays });
@@ -305,7 +404,7 @@ export const getStays = asyncHandler(async (_req, res) => {
 
 export const getStayById = asyncHandler(async (req, res, next) => {
   const stay = await Stay.findById(req.params.id).populate(
-    "customer room employee",
+    "customer room employee additionalGuests",
   );
   if (!stay) {
     return next(new ApiError(404, "Stay not found"));

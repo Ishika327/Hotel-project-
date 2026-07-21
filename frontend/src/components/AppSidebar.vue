@@ -2,9 +2,13 @@
   <aside :class="['app-sidebar', { 'app-sidebar--open': open }]">
     <div>
       <div class="app-sidebar__brand">
-        <div class="brand-mark brand-mark--hotel">H</div>
+        <img
+          src="/hotel-logo.jpg"
+          alt="Hotel Aashirbad logo"
+          class="brand-mark brand-mark--hotel"
+        />
         <div>
-          <strong>Hotel Aashirbad</strong>
+          <strong>Hotel Aashirbad and Guest House</strong>
           <p>Staff Portal</p>
         </div>
         <button
@@ -17,7 +21,14 @@
       </div>
 
       <nav class="app-sidebar__nav">
-        <RouterLink to="/" @click="$emit('close')">Dashboard</RouterLink>
+        <RouterLink
+          to="/"
+          active-class=""
+          exact-active-class="router-link-active"
+          @click="$emit('close')"
+        >
+          Dashboard
+        </RouterLink>
         <RouterLink to="/rooms" @click="$emit('close')">Rooms</RouterLink>
         <RouterLink to="/customers" @click="$emit('close')"
           >Customers</RouterLink

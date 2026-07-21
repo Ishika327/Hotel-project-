@@ -6,9 +6,6 @@
         <h2>Invoices</h2>
       </div>
       <div class="action-row">
-        <button class="pill-btn" type="button" @click="refreshData">
-          Refresh
-        </button>
         <button
           v-if="selectedInvoice"
           class="primary-btn"

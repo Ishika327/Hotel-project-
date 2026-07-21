@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 export const useUiStore = defineStore("ui", {
   state: () => ({
-    theme: localStorage.getItem("hotel_theme") || "dark",
+    theme: localStorage.getItem("hotel_theme") || "light",
     toasts: [],
   }),
   actions: {

@@ -206,6 +206,7 @@ export const useCustomerStore = defineStore("customer", {
           checkIn: stayData.checkIn,
           checkOut: stayData.checkOut,
           specialRequests: stayData.specialRequests,
+          guestList: stayData.guestList || [],
         };
 
         const { data } = await api.post("/stays", payload);

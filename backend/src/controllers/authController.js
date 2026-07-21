@@ -26,11 +26,17 @@ export const login = asyncHandler(async (req, res, next) => {
     email: normalizeEmail(email),
   }).select("+password");
 
+  console.log("Email entered:", email);
+  console.log("Employee found:", employee);
+
   if (!employee || !employee.isActive) {
     return next(new ApiError(401, "Invalid credentials"));
   }
 
   const validPassword = await bcrypt.compare(password, employee.password);
+
+  console.log("Password valid:", validPassword);
+
   if (!validPassword) {
     return next(new ApiError(401, "Invalid credentials"));
   }
