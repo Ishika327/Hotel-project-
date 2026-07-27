@@ -46,6 +46,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import NepaliDate from "nepali-date-converter";
 import { useAuthStore } from "../stores/auth";
 import { useUiStore } from "../stores/ui";
 
@@ -70,15 +71,27 @@ const titles = {
 
 const title = computed(() => titles[route.name] || "Hotel Portal");
 const breadcrumb = computed(() => ["Hotel Admin", title.value].join(" / "));
-const clockText = computed(() =>
-  new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
+
+const clockText = computed(() => {
+  const timePart = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
-  }).format(now.value),
-);
+  }).format(now.value);
+
+  try {
+    const nepaliDate = new NepaliDate(now.value);
+    const datePart = nepaliDate.format("ddd, DD MMMM YYYY", "en");
+    return `${datePart}, ${timePart}`;
+  } catch {
+    const fallbackDate = new Intl.DateTimeFormat("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    }).format(now.value);
+    return `${fallbackDate}, ${timePart}`;
+  }
+});
+
 const userName = computed(
   () => auth.employee?.fullName || auth.employee?.name || "User",
 );
