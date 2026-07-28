@@ -415,6 +415,7 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useFoodBillingStore } from "../stores/foodBilling";
+import NepaliDate from "nepali-date-converter";
 
 const store = useFoodBillingStore();
 const {
@@ -974,11 +975,21 @@ const buildBillPrintHTML = () => {
   const paid = Number(amountPaid.value || 0);
   const remaining = Math.max(0, grandTotal - paid);
   const returnAmt = Math.max(0, paid - grandTotal);
-  const now = new Date().toLocaleString("en-NP", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-
+  const nowDate = new Date();
+  const now = (() => {
+    const timePart = new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(nowDate);
+    try {
+      return `${new NepaliDate(nowDate).format("DD MMMM YYYY", "en")}, ${timePart}`;
+    } catch {
+      return nowDate.toLocaleString("en-NP", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+    }
+  })();
   const itemRows = [
     {
       name: "Room charges",

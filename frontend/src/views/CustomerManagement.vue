@@ -13,15 +13,16 @@
 
         <form class="form-grid" @submit.prevent="submitForm">
           <label class="field-row">
-            <span>Full Name</span>
+            <span>Citizenship No. *</span>
             <input
-              v-model="form.fullName"
-              :class="{ 'input-error': errors.fullName }"
+              v-model="form.citizenshipIdNumber"
+              :class="{ 'input-error': errors.citizenshipIdNumber }"
               type="text"
-              placeholder="Guest full name"
+              placeholder="XX-XX-XX-XXXXX"
+              required
             />
-            <small v-if="errors.fullName" class="error-text">{{
-              errors.fullName
+            <small v-if="errors.citizenshipIdNumber" class="error-text">{{
+              errors.citizenshipIdNumber
             }}</small>
           </label>
 
@@ -754,6 +755,7 @@
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import api from "../services/api";
 import { useRouter } from "vue-router";
+import NepaliDate from "nepali-date-converter";
 import { useAuthStore } from "../stores/auth";
 import { useCustomerStore } from "../stores/customer";
 
@@ -1066,9 +1068,15 @@ const formatNpr = (value) =>
 
 const formatShortDate = (value) => {
   if (!value) return "-";
-  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(
-    new Date(value),
-  );
+  const adDate = new Date(value);
+  if (Number.isNaN(adDate.getTime())) return "-";
+  try {
+    return new NepaliDate(adDate).format("DD MMMM YYYY", "en");
+  } catch {
+    return new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(
+      adDate,
+    );
+  }
 };
 
 const stayNights = (stay) => {
@@ -1132,6 +1140,10 @@ const validateForm = () => {
 
   if (digits.length !== 10) {
     errors.phoneNumber = "Enter a valid Nepali phone number.";
+  }
+
+  if (!form.citizenshipIdNumber.trim()) {
+    errors.citizenshipIdNumber = "Citizenship number is required.";
   }
 
   return (
@@ -1672,6 +1684,7 @@ textarea:focus {
   opacity: 1;
   margin-top: 12px;
 }
+
 .room-assignment-panel--inline {
   margin-top: 0;
 }

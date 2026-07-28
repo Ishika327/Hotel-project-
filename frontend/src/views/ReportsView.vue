@@ -146,6 +146,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
 import api from "../services/api";
+import NepaliDate from "nepali-date-converter";
 import StatusBadge from "../components/StatusBadge.vue";
 import { useUiStore } from "../stores/ui";
 import { formatCurrency } from "../utils/format";
@@ -189,18 +190,29 @@ const matchesSearch = (candidate, queryTokens) => {
 const invoicePaidDate = (invoice) =>
   invoice?.paidAt ? new Date(invoice.paidAt) : null;
 
-const formatReportDate = (date) =>
-  new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
+const formatReportDate = (date) => {
+  try {
+    return new NepaliDate(date).format("MMMM DD, YYYY", "en");
+  } catch {
+    return new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }).format(date);
+  }
+};
 
-const formatReportMonth = (year, monthIndex) =>
-  new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    year: "numeric",
-  }).format(new Date(year, monthIndex, 1));
+const formatReportMonth = (year, monthIndex) => {
+  const adDate = new Date(year, monthIndex, 1);
+  try {
+    return new NepaliDate(adDate).format("MMMM YYYY", "en");
+  } catch {
+    return new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      year: "numeric",
+    }).format(adDate);
+  }
+};
 
 const reportPaidInvoices = computed(() =>
   invoices.value.filter(
@@ -437,55 +449,6 @@ onMounted(loadReports);
 </script>
 
 <style scoped>
-.report-tabs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.summary-caption {
-  margin: 8px 0 12px;
-  color: var(--muted);
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.summary-grid {
-  display: grid;
-  gap: 12px;
-}
-
-.summary-grid--single {
-  margin-bottom: 14px;
-}
-
-.summary-card--highlight {
-  max-width: 320px;
-}
-
-.report-panel--main {
-  min-height: 190px;
-  align-self: start;
-}
-
-.occupancy-donut {
-  position: relative;
-  min-height: 220px;
-}
-
-.occupancy-donut__label {
-  position: absolute;
-  display: grid;
-  gap: 4px;
-  text-align: center;
-}
-
-@media (max-width: 900px) {
-  .summary-grid {
-    grid-template-columns: 1fr;
-  }
-}
 .report-toolbar {
   display: flex;
   align-items: center;
@@ -587,144 +550,24 @@ onMounted(loadReports);
   margin-top: 4px;
 }
 
-.occupancy-donut {
-  min-height: 180px;
-  margin: 10px 0;
-}
-
-.occupancy-donut__label {
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.chart-legend {
-  margin-top: 8px;
-  padding-top: 12px;
-  border-top: 1px solid var(--panel-border);
-}
-.report-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  padding: 14px 16px;
-}
-
-.report-tab {
-  padding: 8px 14px;
-  font-size: 0.85rem;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid var(--panel-border);
-  color: var(--muted);
-}
-
-.report-tab--active {
-  background: linear-gradient(135deg, var(--gold), var(--gold-soft));
-  color: #26190a;
-  font-weight: 700;
-  border-color: transparent;
-}
-
-.inline-stats {
-  gap: 12px;
-}
-
-.inline-stats label {
-  gap: 4px;
-  font-size: 0.8rem;
-  color: var(--muted);
-  font-weight: 500;
-}
-
-.inline-stats input {
-  width: 160px;
-  height: 38px;
-  padding: 7px 10px;
-  font-size: 0.86rem;
-}
-
-.report-panel--main {
-  min-height: 0;
-}
-
-.panel__head {
-  margin-bottom: 6px;
-}
-
-.summary-caption {
-  margin: 4px 0 14px;
-  font-size: 0.88rem;
-}
-
-.report-search {
-  display: grid;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-
-.report-search span {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text);
-}
-
-.report-search input {
-  height: 40px;
-}
-
-.summary-grid--single {
-  margin-bottom: 16px;
-}
-
-.summary-card--highlight {
-  max-width: 100%;
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(185, 134, 63, 0.08);
-  border: 1px solid rgba(185, 134, 63, 0.2);
-}
-
-.summary-card--highlight span {
-  font-size: 0.85rem;
-  color: var(--muted);
-  font-weight: 500;
-}
-
-.summary-card--highlight strong {
-  font-family: var(--font-mono);
-  font-size: 1.15rem;
-}
-
-.table-wrap {
-  border-top: 1px solid var(--panel-border);
-  margin-top: 4px;
-}
-
-.occupancy-donut {
-  min-height: 180px;
-  margin: 10px 0;
-}
-
-.occupancy-donut__label {
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.chart-legend {
-  margin-top: 8px;
-  padding-top: 12px;
-  border-top: 1px solid var(--panel-border);
-}
 .occupancy-donut {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
+  max-width: 220px;
+  margin: 16px auto;
+}
+
+.report-panel--main:has(.occupancy-donut) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.report-panel--main:has(.occupancy-donut) .panel__head {
+  width: 100%;
 }
 
 .occupancy-donut__label {
@@ -744,36 +587,17 @@ onMounted(loadReports);
 .occupancy-donut__label .subtle {
   font-size: 0.82rem;
 }
-.reports-grid {
-  align-items: start;
-}
-
-.report-panel--main {
-  height: auto;
-}
-
-.occupancy-donut {
-  min-height: 140px;
-  margin: 16px 0;
-}
-.occupancy-donut {
-  justify-content: center;
-  max-width: 220px;
-  margin: 16px auto;
-}
-
-.report-panel--main:has(.occupancy-donut) {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.report-panel--main:has(.occupancy-donut) .panel__head {
-  width: 100%;
-}
 
 .chart-legend {
   width: 100%;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--panel-border);
+}
+
+@media (max-width: 900px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
