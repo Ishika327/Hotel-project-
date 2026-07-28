@@ -13,16 +13,15 @@
 
         <form class="form-grid" @submit.prevent="submitForm">
           <label class="field-row">
-            <span>Citizenship No. *</span>
+            <span>Full Name</span>
             <input
-              v-model="form.citizenshipIdNumber"
-              :class="{ 'input-error': errors.citizenshipIdNumber }"
+              v-model="form.fullName"
+              :class="{ 'input-error': errors.fullName }"
               type="text"
-              placeholder="XX-XX-XX-XXXXX"
-              required
+              placeholder="Guest full name"
             />
-            <small v-if="errors.citizenshipIdNumber" class="error-text">{{
-              errors.citizenshipIdNumber
+            <small v-if="errors.fullName" class="error-text">{{
+              errors.fullName
             }}</small>
           </label>
 
@@ -1140,10 +1139,6 @@ const validateForm = () => {
 
   if (digits.length !== 10) {
     errors.phoneNumber = "Enter a valid Nepali phone number.";
-  }
-
-  if (!form.citizenshipIdNumber.trim()) {
-    errors.citizenshipIdNumber = "Citizenship number is required.";
   }
 
   return (
