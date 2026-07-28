@@ -217,7 +217,6 @@ import api from "../services/api";
 import DataTable from "../components/DataTable.vue";
 import { useUiStore } from "../stores/ui";
 import { formatCurrency } from "../utils/format";
-import NepaliDate from "nepali-date-converter";
 
 const ui = useUiStore();
 const invoices = ref([]);
@@ -230,21 +229,10 @@ const selectedInvoice = ref(null);
 
 const formatDate = (value) => {
   if (!value) return "-";
-  const adDate = new Date(value);
-  if (Number.isNaN(adDate.getTime())) return "-";
-
-  try {
-    const timePart = new Intl.DateTimeFormat("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    }).format(adDate);
-    return `${new NepaliDate(adDate).format("DD MMMM YYYY", "en")}, ${timePart}`;
-  } catch {
-    return new Intl.DateTimeFormat("en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(adDate);
-  }
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
 };
 
 const loadInvoices = async () => {
