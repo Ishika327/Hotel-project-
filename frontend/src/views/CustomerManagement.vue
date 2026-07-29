@@ -77,12 +77,13 @@
           </label>
 
           <label class="field-row">
-            <span>Citizenship No.</span>
+            <span>Citizenship No. *</span>
             <input
               v-model="form.citizenshipIdNumber"
               :class="{ 'input-error': errors.citizenshipIdNumber }"
               type="text"
               placeholder="XX-XX-XX-XXXXX"
+              required
             />
             <small v-if="errors.citizenshipIdNumber" class="error-text">{{
               errors.citizenshipIdNumber
@@ -1139,6 +1140,10 @@ const validateForm = () => {
 
   if (digits.length !== 10) {
     errors.phoneNumber = "Enter a valid Nepali phone number.";
+  }
+
+  if (!form.citizenshipIdNumber.trim()) {
+    errors.citizenshipIdNumber = "Citizenship number is required.";
   }
 
   return (

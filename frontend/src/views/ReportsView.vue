@@ -190,6 +190,14 @@ const matchesSearch = (candidate, queryTokens) => {
 const invoicePaidDate = (invoice) =>
   invoice?.paidAt ? new Date(invoice.paidAt) : null;
 
+const bsYearFor = (date) => {
+  try {
+    return new NepaliDate(date).format("YYYY", "en");
+  } catch {
+    return String(date.getFullYear());
+  }
+};
+
 const formatReportDate = (date) => {
   try {
     return new NepaliDate(date).format("MMMM DD, YYYY", "en");
@@ -290,21 +298,17 @@ const reportRows = computed(() => {
   const totals = paidInvoices.reduce((acc, invoice) => {
     const paidDate = invoicePaidDate(invoice);
     if (!paidDate) return acc;
-    const key = String(paidDate.getFullYear());
+    const key = bsYearFor(paidDate);
     acc[key] = (acc[key] || 0) + Number(invoice.totalAmount || 0);
     return acc;
   }, {});
 
-  const years = Object.keys(totals).length
-    ? Object.keys(totals)
-        .map(Number)
-        .sort((a, b) => a - b)
-    : [];
+  const years = Object.keys(totals).sort((a, b) => Number(a) - Number(b));
 
   return years.map((year) => ({
-    key: String(year),
-    label: String(year),
-    total: totals[String(year)] || 0,
+    key: year,
+    label: year,
+    total: totals[year] || 0,
   }));
 });
 

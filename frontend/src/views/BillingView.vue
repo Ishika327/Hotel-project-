@@ -217,6 +217,7 @@ import api from "../services/api";
 import DataTable from "../components/DataTable.vue";
 import { useUiStore } from "../stores/ui";
 import { formatCurrency } from "../utils/format";
+``;
 
 const ui = useUiStore();
 const invoices = ref([]);
