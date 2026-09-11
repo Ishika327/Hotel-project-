@@ -20,22 +20,6 @@
           {{ mode.label }}
         </button>
       </div>
-      <div class="inline-stats">
-        <label>
-          Start date
-          <NepaliDatePicker
-            v-model="dateRange.start"
-            placeholder="मिति छान्नुहोस्"
-          />
-        </label>
-        <label>
-          End date
-          <NepaliDatePicker
-            v-model="dateRange.end"
-            placeholder="मिति छान्नुहोस्"
-          />
-        </label>
-      </div>
     </div>
 
     <div class="panel-grid reports-grid">
@@ -154,7 +138,6 @@ import { computed, onMounted, reactive, ref } from "vue";
 import api from "../services/api";
 import NepaliDate from "nepali-date-converter";
 import StatusBadge from "../components/StatusBadge.vue";
-import NepaliDatePicker from "../components/NepaliDatePicker.vue";
 import { useUiStore } from "../stores/ui";
 import { formatCurrency } from "../utils/format";
 
