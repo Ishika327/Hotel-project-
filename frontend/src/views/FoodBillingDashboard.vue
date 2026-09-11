@@ -2048,6 +2048,132 @@ select:focus,
   color: #1e3a8a;
 }
 
+html.dark .food-billing-page {
+  background: #0f172a;
+  color: #f8fafc;
+  border-color: #334155;
+}
+
+html.dark .left-panel,
+html.dark .right-panel,
+html.dark .guest-card,
+html.dark .bill-items,
+html.dark .totals-card,
+html.dark .menu-card {
+  background: #1e293b;
+  border-color: #475569;
+  color: #f8fafc;
+}
+
+html.dark .left-panel {
+  background:
+    linear-gradient(180deg, rgba(59, 130, 246, 0.12), transparent 35%), #1e293b;
+}
+
+html.dark .menu-manager,
+html.dark .payment-panel {
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.14), #1e293b);
+  border-color: #475569;
+}
+
+html.dark .field span,
+html.dark .menu-manager__form label span,
+html.dark .menu-card__edit label span,
+html.dark .partial-payment-row span,
+html.dark .menu-card p,
+html.dark .bill-line p,
+html.dark .payment-helper,
+html.dark .empty-note {
+  color: #cbd5e1;
+}
+
+html.dark select,
+html.dark .menu-manager__form input,
+html.dark .menu-card__edit input,
+html.dark .partial-payment-row input[type="number"] {
+  background: #0f172a;
+  border-color: #64748b;
+  color: #f8fafc;
+}
+
+html.dark .tab-btn,
+html.dark .payment-pill {
+  background: #334155;
+  border-color: #64748b;
+  color: #e2e8f0;
+}
+
+html.dark .tab-btn--active,
+html.dark .payment-pill--active,
+html.dark .btn-add,
+html.dark .pill-btn,
+html.dark .primary-btn {
+  background: #2563eb;
+  border-color: #60a5fa;
+  color: #ffffff;
+}
+
+html.dark .btn-add:hover,
+html.dark .pill-btn:hover,
+html.dark .primary-btn:hover {
+  background: #3b82f6;
+}
+
+html.dark .pill-btn--ghost {
+  background: #334155;
+  border-color: #64748b;
+  color: #f8fafc;
+}
+
+html.dark .qty-row {
+  background: #334155;
+}
+
+html.dark .qty-btn,
+html.dark .btn-icon {
+  background: #334155;
+  border-color: #64748b;
+  color: #f8fafc;
+}
+
+html.dark .qty-btn:hover,
+html.dark .btn-icon:hover {
+  background: #475569;
+  border-color: #93c5fd;
+  color: #ffffff;
+}
+
+html.dark .remove-btn {
+  background: #451a1a;
+  border-color: #7f1d1d;
+  color: #fecaca;
+}
+
+html.dark .pill-btn:disabled,
+html.dark .primary-btn:disabled {
+  background: #334155;
+  border-color: #475569;
+  color: #cbd5e1;
+  opacity: 0.8;
+}
+
+html.dark .guest-name {
+  color: #f8fafc;
+}
+
+html.dark .total-row,
+html.dark .total-item--grand,
+html.dark .bill-line,
+html.dark .partial-payment-box {
+  border-color: #475569;
+}
+
+html.dark .invoice-result-card {
+  background: #172554;
+  border-color: #60a5fa;
+  color: #dbeafe;
+}
+
 .status-badge--blue {
   background: rgba(37, 99, 235, 0.12);
   color: #1d4ed8;
